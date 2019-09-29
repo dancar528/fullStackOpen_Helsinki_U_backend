@@ -28,6 +28,12 @@ app.get('/api/persons', (req, res) => {
     res.json(persons);
 });
 
+app.get('/info', (req, res) => {
+    const now = Date();
+    res.send(`<div>Phonebook has info for ${persons.length} people</div>
+    <div>${now}</div>`);
+});
+
 app.listen(PORT, () => {
     console.log(`server listen on port ${PORT}`);
 });
