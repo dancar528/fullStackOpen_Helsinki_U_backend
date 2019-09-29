@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const PORT = 3001;
-const persons = [
+let persons = [
     {
         id: 1,
         name: "Arto Hellas",
@@ -43,6 +43,18 @@ app.get('/info', (req, res) => {
     const now = Date();
     res.send(`<div>Phonebook has info for ${persons.length} people</div>
     <div>${now}</div>`);
+});
+
+app.delete('/api/persons/:id', (req, res) => {
+    const id = Number(req.params.id);
+    const person = persons.find(person => person.id === id);
+
+    if (person) {
+        persons = persons.filter(person => person.id !== id);
+        res.status(204).end();
+    } else {
+        res.status(404).send({ error: `Doesn't exist person with id ${id}` });
+    }
 });
 
 app.listen(PORT, () => {
