@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const bodyParser = require('body-parser');
 const PORT = 3001;
 let persons = [
     {
@@ -24,6 +25,8 @@ let persons = [
     }
 ];
 
+app.use(bodyParser.json());
+
 app.get('/api/persons', (req, res) => {
     res.json(persons);
 });
@@ -37,6 +40,18 @@ app.get('/api/persons/:id', (req, res) => {
     } else {
         res.status(404).send({ error: `Doesn't exist person with id ${id}` });
     }
+});
+
+app.post('/api/persons', (req, res) => {
+    const body = req.body;
+    const id = Math.floor(Math.random() * Math.floor(1000));
+    const newPerson = {
+        id: id,
+        name: body.name,
+        number: body.number
+    };
+    persons = persons.concat(newPerson);
+    res.json(newPerson);
 });
 
 app.get('/info', (req, res) => {
