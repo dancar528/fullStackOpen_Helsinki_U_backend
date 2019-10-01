@@ -44,6 +44,21 @@ app.get('/api/persons/:id', (req, res) => {
 
 app.post('/api/persons', (req, res) => {
     const body = req.body;
+    const name = body.name.trim();
+
+    if (!name) {
+        return res.status(400).send({ error: 'Name missing' });
+    }
+    if (!body.number) {
+        return res.status(400).send({ error: "Number missing" });
+    }
+
+    const person = persons.find(person =>
+        person.name.trim().toLowerCase() === name.toLowerCase()
+    );
+    if (person) {
+        return res.status(409).send({ error: 'Name must be unique' });
+    }
     const id = Math.floor(Math.random() * Math.floor(1000));
     const newPerson = {
         id: id,
