@@ -3,29 +3,10 @@ const app = express();
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const cors = require('cors');
+const mongoose = require('mongoose');
+const url = `mongodb+srv://dcardoh:password@nodejstdea-f8r7w.mongodb.net/fullstack_Helsinki_U?retryWrites=true&w=majority`;
 const PORT = process.env.PORT || 3001;
-let persons = [
-    {
-        id: 1,
-        name: "Arto Hellas",
-        number: "040-123456"
-    },
-    {
-        id: 2,
-        name: "Ada Lovelace",
-        number: "39-44-5323523"
-    },
-    {
-        id: 3,
-        name: "Dan Abramov",
-        number: "12-43-234345"
-    },
-    {
-        id: 4,
-        name: "Mary Poppendieck",
-        number: "39-23-6423122"
-    }
-];
+let persons = [];
 const log = morgan(
     //':method :url :status :res[content-length] - :response-time ms',
     (tokens, req, res) => {
@@ -38,6 +19,18 @@ const log = morgan(
             JSON.stringify(req.body)
         ].join(' ')
 });
+const personSchema = new mongoose.Schema({
+    name: String,
+    number: String
+});
+const Person = new mongoose.model('Person', personSchema);
+personSchema.set('toJSON', {
+    transform: (document, returnedObject) => {
+        returnedObject.id = returnedObject._id.toString();
+        delete returnedObject._id;
+        delete returnedObject.__v;
+    }
+});
 
 app.use(cors());
 
@@ -47,14 +40,19 @@ app.use(log);
 
 app.use(express.static('build'));
 
+mongoose.connect(url, { useNewUrlParser: true });
+
+Person.find({}).then(result => {
+    persons = result.map(person => person.toJSON());
+});
+
 app.get('/api/persons', (req, res) => {
     res.json(persons);
 });
 
 app.get('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id);
+    const id = req.params.id;
     const person = persons.find(person => person.id === id);
-
     if (person) {
         res.json(person);
     } else {
