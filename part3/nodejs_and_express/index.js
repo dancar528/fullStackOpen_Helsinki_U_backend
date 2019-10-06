@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
+const cors = require('cors');
 const PORT = 3001;
 let persons = [
     {
@@ -37,6 +38,8 @@ const log = morgan(
             JSON.stringify(req.body)
         ].join(' ')
 });
+
+app.use(cors());
 
 app.use(bodyParser.json());
 
