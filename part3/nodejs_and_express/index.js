@@ -45,6 +45,8 @@ app.use(bodyParser.json());
 
 app.use(log);
 
+app.use(express.static('build'));
+
 app.get('/api/persons', (req, res) => {
     res.json(persons);
 });
