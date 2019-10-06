@@ -25,10 +25,22 @@ let persons = [
         number: "39-23-6423122"
     }
 ];
+const log = morgan(
+    //':method :url :status :res[content-length] - :response-time ms',
+    (tokens, req, res) => {
+        return [
+            tokens.method(req, res),
+            tokens.url(req, res),
+            tokens.status(req, res),
+            tokens.res(req, res, 'content-length'), '-',
+            tokens['response-time'](req, res), 'ms',
+            JSON.stringify(req.body)
+        ].join(' ')
+});
 
 app.use(bodyParser.json());
 
-app.use(morgan('tiny'));
+app.use(log);
 
 app.get('/api/persons', (req, res) => {
     res.json(persons);
