@@ -18,6 +18,14 @@ const log = morgan(
             JSON.stringify(req.body)
         ].join(' ')
 });
+const errorHandler = (error, req, res, next) => {
+    console.error(error.message);
+
+    if (error.name === 'CastError' && error.kind === 'ObjectId') {
+        return res.status(400).send({ error: 'malformatted id' });
+    }
+    next(error);
+};
 
 app.use(express.static('build'));
 
@@ -34,14 +42,16 @@ app.get('/api/persons', (req, res) => {
     });
 });
 
-app.get('/api/persons/:id', (req, res) => {
+app.get('/api/persons/:id', (req, res, next) => {
     const id = req.params.id;
     Person.findById(id).then(person => {
-        res.json(person.toJSON());
+        if (person) {
+            res.json(person.toJSON());
+        } else {
+            res.status(404).send({ error: `Doesn't exist person with id ${id}` });
+        }
     })
-    .catch(error => {
-        return res.status(400).send({ error: 'malformatted id' });
-    });
+    .catch(error => next(error));
 });
 
 app.post('/api/persons', (req, res) => {
@@ -78,7 +88,7 @@ app.get('/info', (req, res) => {
     <div>${now}</div>`);
 });
 
-app.delete('/api/persons/:id', (req, res) => {
+app.delete('/api/persons/:id', (req, res, next) => {
     const id = req.params.id;
     Person.findByIdAndRemove(id)
         .then(result => {
@@ -88,10 +98,11 @@ app.delete('/api/persons/:id', (req, res) => {
                 res.status(404).send({ error: `Doesn't exist person with id ${id}` });
             }
         })
-        .catch(error => {
-            return res.status(400).send({ error: 'malformatted id' });
-        });
+        .catch(error => next(error));
 });
+
+// handler of requests with result to errors
+app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`server listen on port ${PORT}`);
