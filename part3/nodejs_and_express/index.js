@@ -64,12 +64,6 @@ app.post('/api/persons', (req, res) => {
     if (!body.number) {
         return res.status(400).send({ error: "Number missing" });
     }
-    /*let person = persons.find(person =>
-        person.name.trim().toLowerCase() === name.toLowerCase()
-    );
-    if (person) {
-        return res.status(409).send({ error: 'Name must be unique' });
-    }*/
 
     const person = new Person({
         name: name,
@@ -83,8 +77,10 @@ app.post('/api/persons', (req, res) => {
 
 app.get('/info', (req, res) => {
     const now = Date();
-    res.send(`<div>Phonebook has info for ${persons.length} people</div>
-    <div>${now}</div>`);
+    Person.estimatedDocumentCount()
+        .then(result => {
+            res.send(`<div>Phonebook has info for ${result} people</div><div>${now}</div>`);
+        });
 });
 
 app.put('/api/persons/:id', (req, res, next) => {
