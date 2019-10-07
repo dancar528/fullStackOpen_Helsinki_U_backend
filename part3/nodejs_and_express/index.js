@@ -64,7 +64,6 @@ app.post('/api/persons', (req, res) => {
     if (!body.number) {
         return res.status(400).send({ error: "Number missing" });
     }
-
     /*let person = persons.find(person =>
         person.name.trim().toLowerCase() === name.toLowerCase()
     );
@@ -86,6 +85,28 @@ app.get('/info', (req, res) => {
     const now = Date();
     res.send(`<div>Phonebook has info for ${persons.length} people</div>
     <div>${now}</div>`);
+});
+
+app.put('/api/persons/:id', (req, res, next) => {
+    const id = req.params.id;
+    const body = req.body;
+    const person = {
+        number: body.number
+    };
+
+    if (!body.number) {
+        return res.status(400).send({ error: 'number is not sent in the request' });
+    }
+
+    Person.findByIdAndUpdate(id, person, { new: true })
+        .then(person => {
+            if (person) {
+                return res.status(200).send(person);
+            } else {
+                return res.status(404).send({ error: 'Person to update does not exist' });
+            }
+        })
+        .catch(error => next(error));
 });
 
 app.delete('/api/persons/:id', (req, res, next) => {
