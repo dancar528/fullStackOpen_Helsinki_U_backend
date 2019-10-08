@@ -19,12 +19,16 @@ const log = morgan(
         ].join(' ')
 });
 const errorHandler = (error, req, res, next) => {
-    console.error(error.message);
-
     if (error.name === 'CastError' && error.kind === 'ObjectId') {
         return res.status(400).send({ error: 'malformatted id' });
-    } else if (error.name === 'ValidatorError' && error.kind === 'unique') {
-        return res.status(409).send({ error: error.message });
+    } else if (error.name && error.name.name === 'ValidatorError' && error.name.kind === 'unique') {
+        return res.status(409).send({ error: error.name.message });
+    } else if (error.name && error.name.name === 'ValidatorError' && error.name.kind === 'minlength') {
+        return res.status(409).send({ error: error.name.message });
+    } else if (error.number && error.number.name === 'ValidatorError' && error.number.kind === 'minlength') {
+        return res.status(409).send({ error: error.number.message });
+    } else if (error.status && error.message) {
+        return res.status(error.status).send({ error: error.message });
     }
     next(error);
 };
@@ -50,7 +54,11 @@ app.get('/api/persons/:id', (req, res, next) => {
         if (person) {
             res.json(person.toJSON());
         } else {
-            res.status(404).send({ error: `Doesn't exist person with id ${id}` });
+            const error = {
+                status: 404,
+                message: 'Person doesn\'t exist'
+            };
+            next(error);
         }
     })
     .catch(error => next(error));
@@ -59,12 +67,21 @@ app.get('/api/persons/:id', (req, res, next) => {
 app.post('/api/persons', (req, res, next) => {
     const body = req.body;
     const name = body.name.trim();
+    let error = {};
 
     if (!name) {
-        return res.status(400).send({ error: 'Name missing' });
+        error = {
+            status: 400,
+            message: 'Name is missing'
+        };
+        next(error);
     }
     if (!body.number) {
-        return res.status(400).send({ error: "Number missing" });
+        error = {
+            status: 400,
+            message: 'Number is missing'
+        };
+        next(error);
     }
 
     const person = new Person({
@@ -75,7 +92,9 @@ app.post('/api/persons', (req, res, next) => {
     person.save().then(savedPerson => {
         res.json(savedPerson.toJSON());
     })
-    .catch(error => next(error.errors.name));
+    .catch(error => {
+        next(error.errors)
+    });
 });
 
 app.get('/info', (req, res) => {
@@ -92,20 +111,42 @@ app.put('/api/persons/:id', (req, res, next) => {
     const person = {
         number: body.number
     };
+    let error = {};
 
     if (!body.number) {
-        return res.status(400).send({ error: 'number is not sent in the request' });
+        error = {
+            status: 400,
+            message: 'number is missing'
+        };
+        next(error);
     }
-
-    Person.findByIdAndUpdate(id, person, { new: true })
+    // runCalidators to validate the name as unique and
+    // the name and number correct length fields
+    Person.findByIdAndUpdate(id, person, {
+        new: true,
+        runValidators: true,
+        context: 'query'
+    })
         .then(person => {
             if (person) {
                 return res.status(200).send(person);
             } else {
-                return res.status(404).send({ error: 'Person to update does not exist' });
+                error = {
+                    status: 404,
+                    message: 'Person to update does not exist'
+                };
+                next(error);
             }
         })
-        .catch(error => next(error));
+        .catch(error => {
+            if (error.errors) {
+                // apply for validatorError. i.e. unique, minlength
+                next(error.errors)
+            } else {
+                // apply for castError i.e. malformatted id
+                next(error)
+            }
+        });
 });
 
 app.delete('/api/persons/:id', (req, res, next) => {
@@ -115,7 +156,11 @@ app.delete('/api/persons/:id', (req, res, next) => {
             if (result) {
                 res.status(204).end();
             } else {
-                res.status(404).send({ error: `Doesn't exist person with id ${id}` });
+                const error = {
+                    status: 404,
+                    message: 'Person to delete does not exist'
+                };
+                next(error);
             }
         })
         .catch(error => next(error));
