@@ -23,6 +23,8 @@ const errorHandler = (error, req, res, next) => {
 
     if (error.name === 'CastError' && error.kind === 'ObjectId') {
         return res.status(400).send({ error: 'malformatted id' });
+    } else if (error.name === 'ValidatorError' && error.kind === 'unique') {
+        return res.status(409).send({ error: error.message });
     }
     next(error);
 };
@@ -54,7 +56,7 @@ app.get('/api/persons/:id', (req, res, next) => {
     .catch(error => next(error));
 });
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const body = req.body;
     const name = body.name.trim();
 
@@ -72,7 +74,8 @@ app.post('/api/persons', (req, res) => {
 
     person.save().then(savedPerson => {
         res.json(savedPerson.toJSON());
-    });
+    })
+    .catch(error => next(error.errors.name));
 });
 
 app.get('/info', (req, res) => {
