@@ -1,0 +1,9 @@
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+
+{
+    "title": "React + Redux",
+    "author": "Carlangas",
+    "url": "http://medium.com/carlangas/react_redux",
+    "likes": 1
+}
