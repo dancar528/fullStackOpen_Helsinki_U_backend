@@ -1,3 +1,5 @@
+const _ = require('lodash')
+
 const dummy = (blogs) => {
     return 1
 }
@@ -36,8 +38,48 @@ const favoriteBlog = blogs => {
     }
 }
 
+/*
+    explaination of:
+        blogs = _.chain(blogs).groupBy('author').groupBy('length').value()
+
+    1) _.chain(blogs).groupBy('author').value():
+        gets blogs list grouping by author, it would look like:
+        {
+            'blog's author name 1': blogs[2],
+            'blog's author name 2': blogs[1],
+            'blog's author name 3': blogs[1]
+        }
+
+    2) _.chain(blogs).groupBy('author').groupBy('length').value()
+        it gets blogs author list grouping length, which would look like:
+        (it returns sorted asc, so the last item is the largest amount of blogs)
+        {
+            '1': [ [ [Object] ], [ [Object] ]
+            '2': [ [ [Object], [Object] ] ]
+        }
+*/
+const mostBlogs = blogs => {
+
+    if (blogs.length === 0) {
+        return { message: 'Blog list is empty' }
+    }
+
+    blogs = _.chain(blogs).groupBy('author').groupBy('length').value()
+    const maxNumberOfBlogs = Number(_.chain(blogs).keys().max().value())
+    let authorMostBlogs = blogs[maxNumberOfBlogs][0][0].author
+
+    if (typeof authorMostBlogs === 'undefined') {
+        authorMostBlogs = 'No author'
+    }
+    return {
+        author: authorMostBlogs,
+        blogs: maxNumberOfBlogs
+    }
+}
+
 module.exports = {
     dummy,
     totalLikes,
-    favoriteBlog
+    favoriteBlog,
+    mostBlogs
 }
