@@ -275,4 +275,94 @@ describe('most blogs', () =>{
             blogs: 7
         })
     })
+
+    test('when list has only one blog it should return the author of it', () => {
+        const blogs = [
+            {
+                _id: "5a422bc61b54a676234d17fc",
+                title: "Dorian Gray",
+                author: "Oscar Wilde",
+                url: "http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html",
+                likes: 2,
+                __v: 0
+            }
+        ]
+        expect(listHelper.mostBlogs(blogs)).toEqual({
+            author: "Oscar Wilde",
+            blogs: 1
+        })
+    })
+
+    test('when list has only one author who has the most number of blogs it should return it', () => {
+        expect(listHelper.mostBlogs(blogs)).toEqual({
+            author: 'George R.R. Martin',
+            blogs: 4
+        })
+    })
+
+    test('when list has several authors whose have the most number of blogs it should return the one of them', () => {
+        const additionalBlogs = [
+            {
+                _id: "5a422bc61b54a676234d17fc",
+                title: "Dorian Gray",
+                author: "Robert C. Martin",
+                url: "http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html",
+                likes: 2,
+                __v: 0
+            }
+        ]
+        const blogsTest = blogs.concat(additionalBlogs)
+        expect(listHelper.mostBlogs(blogsTest)).toEqual({
+            author: 'George R.R. Martin',
+            blogs: 4
+        })
+    })
+})
+
+describe('most likes', () => {
+    test('when blog list is empty it should report this fact', () => {
+        expect(listHelper.mostLikes([])).toEqual({ message: 'Blog list is empty' })
+    })
+
+    test('when list has only one blog it should return the likes of it', () => {
+        const blogs = [
+            {
+                _id: "5a422bc61b54a676234d17fc",
+                title: "Dorian Gray",
+                author: "Oscar Wilde",
+                url: "http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html",
+                likes: 2,
+                __v: 0
+            }
+        ]
+        expect(listHelper.mostLikes(blogs)).toEqual({
+            author: "Oscar Wilde",
+            likes: 2
+        })
+    })
+
+    test('when list has only one author who has the most number of likes it should return it', () => {
+        expect(listHelper.mostLikes(blogs)).toEqual({
+            author: 'Edsger W. Dijkstra',
+            likes: 17
+        })
+    })
+
+    test('when list has several authors whose have the most number of blogs it should return one of them', () => {
+        const additionalBlogs = [
+            {
+                _id: "5a422bc61b54a676234d17fc",
+                title: "Dorian Gray",
+                author: "Robert C. Martin",
+                url: "http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html",
+                likes: 5,
+                __v: 0
+            }
+        ]
+        blogsTest = blogs.concat(additionalBlogs)
+        expect(listHelper.mostLikes(blogsTest)).toEqual({
+            author: 'Robert C. Martin',
+            likes: 17
+        })
+    })
 })
